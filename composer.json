@@ -31,7 +31,7 @@
     },
     "extra": {
         "name": "ImageShop",
-        "handle": "imageshop",
+        "handle": "imageshop-dam",
         "developer": "WebDNA",
         "developerUrl": "https://webdna.co.uk",
         "changelogUrl": "https://raw.githubusercontent.com/webdna/imageshop/master/CHANGELOG.md",

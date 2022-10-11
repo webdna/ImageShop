@@ -80,7 +80,7 @@ class ImageShop extends Plugin
 
         Craft::info(
             Craft::t(
-                'imageshop',
+                'imageshop-dam',
                 '{name} plugin loaded',
                 ['name' => $this->name]
             ),
@@ -105,7 +105,7 @@ class ImageShop extends Plugin
     protected function settingsHtml(): string
     {
         return Craft::$app->view->renderTemplate(
-            'imageshop/settings',
+            'imageshop-dam/settings',
             [
                 'settings' => $this->getSettings()
             ]

@@ -43,7 +43,7 @@ class ImageShopField extends Field
 
     public static function displayName(): string
     {
-        return Craft::t('imageshop', 'ImageShop');
+        return Craft::t('imageshop-dam', 'ImageShop DAM');
     }
 
     // Public Methods
@@ -79,25 +79,11 @@ class ImageShopField extends Field
      */
     public function getSettingsHtml(): ?string
     {
-        $settings = ImageShop::$plugin->getSettings();
-        
         // Render the settings template
         return Craft::$app->getView()->renderTemplate(
-            'imageshop/_components/fields/settings',
+            'imageshop-dam/_components/fields/settings',
             [
                 'field' => $this,
-                'token' => Craft::parseEnv($settings->token),
-                'key' => Craft::parseEnv($settings->key),
-                'cultures' => [
-                    [
-                        'label' => 'English',
-                        'value' => 'en-US',
-                    ],
-                    [
-                        'label' => 'Norwegian',
-                        'value' => 'nb-NO',
-                    ],
-                ],
             ]
         );
     }
@@ -118,6 +104,7 @@ class ImageShopField extends Field
             "IMAGESHOPSIZES" => $this->sizes,
             "FORMAT" => "json",
             "SETDOMAIN" => "false",
+            "CULTURE" => $settings->language,
         ]);
         
         $url = sprintf("%s?%s", "https://client.imageshop.no/insertimage2.aspx", trim($query, "&"));
@@ -142,7 +129,7 @@ class ImageShopField extends Field
 
         // Render the input template
         return Craft::$app->getView()->renderTemplate(
-            'imageshop/_components/fields/input',
+            'imageshop-dam/_components/fields/input',
             [
                 'name' => $this->handle,
                 'value' => $value,

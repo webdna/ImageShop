@@ -22,7 +22,7 @@ cd /path/to/project
 - Then tell Composer to load the plugin:
 
 ```
-composer require webdna/imageshop
+composer require webdna/imageshop-dam
 ```
         
 - In the Control Panel, go to Settings → Plugins and click the “Install” button for 'Imageshop'.
@@ -30,7 +30,7 @@ composer require webdna/imageshop
 OR do it via the command line
 
 ```
-php craft install/plugin imageshop
+php craft install/plugin imageshop-dam
 ```
 
 - On the settings page, fill out the token and private key field to start using the plugin.

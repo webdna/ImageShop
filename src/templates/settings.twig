@@ -1,0 +1,54 @@
+{# @var craft \craft\web\twig\variables\CraftVariable #}
+{#
+/**
+ * ImageShop plugin for Craft CMS 3.x
+ *
+ * ImageShop Settings.twig
+ *
+ * @author    WebDNA
+ * @copyright Copyright (c) 2022 WebDNA
+ * @link      https://webdna.co.uk
+ * @package   ImageShop
+ * @since     2.0.0
+ */
+#}
+
+{% import "_includes/forms" as forms %}
+
+{{ forms.autosuggestField({
+    label: 'Token'|t,
+    instructions: 'Imageshop token',
+    id: 'token',
+    name: 'token',
+    suggestEnvVars: true,
+    required: true,
+    value: settings['token']})
+}}
+
+{{ forms.autosuggestField({
+    label: 'Key'|t,
+    instructions: 'Imageshop private key',
+    id: 'key',
+    name: 'key',
+    suggestEnvVars: true,
+    required: true,
+    value: settings['key']})
+}}
+
+{% set languages = [
+  {
+    label: 'Norwegian'|t,
+    value: 'no'
+  }, {
+    label: 'English'|t,
+    value: 'en'
+  }
+] %}
+
+{{ forms.selectField({
+    label: 'Language'|t,
+    id: 'language',
+    name: 'language',
+    options: languages,
+    value: settings['language']})
+}}

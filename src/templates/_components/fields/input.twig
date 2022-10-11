@@ -1,0 +1,35 @@
+{# @var craft \craft\web\twig\variables\CraftVariable #}
+{#
+/**
+ * ImageShop plugin for Craft CMS 3.x
+ *
+ * ImageShopField Field Input
+ *
+ * @author    WebDNA
+ * @copyright Copyright (c) 2022 WebDNA
+ * @link      https://webdna.co.uk
+ * @package   ImageShop
+ * @since     2.0.0
+ */
+#}
+
+{% import "_includes/forms" as forms %}
+
+<div id="imageshop-{{ field.id }}" data-id="{{ namespace }}imageshop">
+
+    <div class="mb-2">
+        <div class="imageshop-preview element removable large hasthum">
+            {% if value.image %}
+                <img src="{{ value.image }}" width="100">
+
+                <div class="imageshop-label">
+                    <div class="label"><span class="title">{{ value.title ?? value.code }}</span></div>
+                    <a class="delete icon imageshop-remove" title="Remove"></a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <button type="button" class="imageshop-trigger add icon dashed btn">{{ 'buttonText'|t('imageshop') }}</button>
+    <input type="hidden" class="imageshop-value" name="{{ name }}" value="{{ value.json | json_encode }}">
+</div>

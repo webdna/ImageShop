@@ -1,0 +1,44 @@
+{# @var craft \craft\web\twig\variables\CraftVariable #}
+{#
+/**
+ * ImageShop plugin for Craft CMS
+ *
+ * ImageShopField Field Settings
+ *
+ * @author    WebDNA
+ * @copyright Copyright (c) 2022 WebDNA
+ * @link      https://webdna.co.uk
+ * @package   ImageShop
+ * @since     2.0.0
+ */
+#}
+
+{% import "_includes/forms" as forms %}
+
+{# {{ forms.textField({
+    label: 'Input text',
+    instructions: 'Text on the selection button',
+    name: 'buttonText',
+    value: 'buttonText'|t('imageshop')
+}) }} #}
+
+{{ forms.textField({
+    label: 'Sizes',
+    instructions: 'The sizes',
+    name: 'sizes',
+    value: field['sizes']
+}) }}
+
+{{ forms.lightswitchField({
+    label: 'Show Crop Dialogue?',
+    instructions: "Indicates whether the size dialogue should be shown.",
+    name: 'showCropDialogue',
+    on: field['showCropDialogue']
+}) }}
+
+{{ forms.lightswitchField({
+    label: 'Show Size Dialogue?',
+    instructions: 'Indicates whether the crop dialogue should be shown',
+    name: 'showSizeDialogue',
+    on: field['showSizeDialogue']
+}) }}

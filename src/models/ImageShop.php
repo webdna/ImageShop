@@ -15,6 +15,7 @@ use webdna\imageshop\ImageShop as Plugin;
 use Craft;
 use craft\base\Model;
 use craft\base\Serializable;
+use craft\helpers\Json;
 
 /**
  * @author    WebDNA
@@ -33,7 +34,7 @@ class ImageShop extends Model implements Serializable
     
     public function __construct($json, $config = [])
     {
-        $this->_json = json_decode($json, true);
+        $this->_json = Json::decodeIfJson($json, true);
         parent::__construct($config);
     }
 
@@ -106,7 +107,7 @@ class ImageShop extends Model implements Serializable
     
     public function getRaw(): ?string
     {
-        return json_encode($this->_json);
+        return Json::encode($this->_json);
     }
     
     public function getJson(): mixed
@@ -186,7 +187,7 @@ class ImageShop extends Model implements Serializable
      */
     public function serialize(): ?string
     {
-        return json_encode($this->_json);
+        return Json::encode($this->_json);
     }
     
     public function __toString(): string

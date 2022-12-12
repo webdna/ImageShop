@@ -9,3 +9,10 @@
  * @package   ImageShop
  * @since     2.0.0
  */
+
+.imageshop-label {
+     position: relative;
+ }
+ .imageshop-remove {
+     right: 0px !important;
+ }

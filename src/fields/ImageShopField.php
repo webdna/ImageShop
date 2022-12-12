@@ -63,6 +63,10 @@ class ImageShopField extends Field
      */
     public function normalizeValue($value, ElementInterface $element = null): Model
     {
+        if ($value instanceof Model) {
+            return $value;
+        }
+        
         return new Model($value);
     }
 

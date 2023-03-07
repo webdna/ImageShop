@@ -126,10 +126,27 @@ class ImageShop extends Model implements Serializable
     
     protected function getLang($lang = null): ?string
     {
-        if (!in_array($lang, ["no", "en", "sv"])) {
-            $lang = "no";
+        if (!$lang) {
+            $settings = Plugin::$plugin->getSettings();
+            switch ($settings->language) {
+                case 'nb-NO':
+                    $lang = 'no';
+                    break;
+                    
+                case 'en-US':
+                    $lang = 'en';
+                    break;
+                    
+                default:
+                    $lang = 'no';
+                    break;
+            }
+        } else {
+            if (!in_array($lang, ["no", "en", "sv"])) {
+                $lang = "no";
+            }
         }
-    
+        
         return $lang;
     }
     

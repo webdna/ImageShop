@@ -35,6 +35,10 @@ class ImageShopField extends Field
     
     public bool $showCropDialogue = false;
     
+    public bool $showDescription = false;
+    
+    public bool $showCredits = false;
+    
     public string $sizes = 'Normal;1920x0';
     
 
@@ -106,6 +110,8 @@ class ImageShopField extends Field
             "SHOWSIZEDIALOGUE" => $this->showSizeDialogue ? 'true' : 'false',
             "SHOWCROPDIALOGUE" => $this->showCropDialogue ? 'true' : 'false',
             "IMAGESHOPSIZES" => $this->sizes,
+            "SHOWDESCRIPTION" => $this->showDescription ? 'true' : 'false',
+            "SHOWCREDITS" => $this->showCredits ? 'true' : 'false',
             "FORMAT" => "json",
             "SETDOMAIN" => "false",
             "CULTURE" => $settings->language,

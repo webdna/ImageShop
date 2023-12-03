@@ -13,6 +13,7 @@ namespace webdna\imageshop\fields;
 use webdna\imageshop\ImageShop;
 use webdna\imageshop\models\ImageShop as Model;
 use webdna\imageshop\assetbundles\imageshop\ImageShopAsset;
+use webdna\imageshop\gql\types\ImageShopType;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -32,15 +33,15 @@ class ImageShopField extends Field
     // =========================================================================
 
     public bool $showSizeDialogue = false;
-    
+
     public bool $showCropDialogue = false;
-    
+
     public bool $showDescription = false;
-    
+
     public bool $showCredits = false;
-    
+
     public string $sizes = 'Normal;1920x0';
-    
+
 
     // Static Methods
     // =========================================================================
@@ -70,7 +71,7 @@ class ImageShopField extends Field
         if ($value instanceof Model) {
             return $value;
         }
-        
+
         return new Model($value);
     }
 
@@ -104,7 +105,7 @@ class ImageShopField extends Field
         $settings = ImageShop::$plugin->getSettings();
         $token = ImageShop::$plugin->service->getTemporaryToken();
         $token = $token->GetTemporaryTokenResponse->GetTemporaryTokenResult;
-        
+
         $query = http_build_query([
             "IMAGESHOPTOKEN" => (string) $token,
             "SHOWSIZEDIALOGUE" => $this->showSizeDialogue ? 'true' : 'false',
@@ -116,9 +117,9 @@ class ImageShopField extends Field
             "SETDOMAIN" => "false",
             "CULTURE" => $settings->language,
         ]);
-        
+
         $url = sprintf("%s?%s", "https://client.imageshop.no/insertimage2.aspx", trim($query, "&"));
-        
+
         // Register our asset bundle
         Craft::$app->getView()->registerAssetBundle(ImageShopAsset::class);
 
@@ -148,6 +149,14 @@ class ImageShopField extends Field
                 'namespace' => $namespacedId,
             ]
         );
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getContentGqlType(): Type|array
+    {
+        return ImageShopType::getType();
     }
 
 }

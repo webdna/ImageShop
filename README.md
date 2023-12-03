@@ -1,11 +1,11 @@
 # Official Imageshop plugin for Craft CMS
 
-This official plugin integrates [Imageshop Digital Asset Management system](https://www.imageshop.org) with Craft CMS by exposing 
-their image selector as a popup that saves the selected image data in a field so the selection 
+This official plugin integrates [Imageshop Digital Asset Management system](https://www.imageshop.org) with Craft CMS by exposing
+their image selector as a popup that saves the selected image data in a field so the selection
 can be used in twig templates.
 
- 
- 
+
+
  ![Screenshot](./screenshot.png)
 
 
@@ -15,7 +15,7 @@ To install the plugin, follow these instructions.
 
 - Open your terminal and go to your Craft project:
 
-```` 
+````
 cd /path/to/project
 ````
 
@@ -24,21 +24,21 @@ cd /path/to/project
 ```
 composer require webdna/imageshop-dam
 ```
-        
+
 - In the Control Panel, go to Settings → Plugins and click the “Install” button for 'Imageshop'.
 
 OR do it via the command line
 
 ```
-php craft install/plugin imageshop-dam
+php craft plugin/install imageshop-dam
 ```
 
 - On the settings page, fill out the token and private key field to start using the plugin.
 
 - You will now have access to the "Imageshop" in the Field type dropdown on the field creation page.
 
- 
-  
+
+
 ## Templating:
 
 
@@ -88,10 +88,10 @@ php craft install/plugin imageshop-dam
 
 <img srcset="{{ craft.imager.srcset(transformedImages) }}">
 ```
- 
- 
- 
- 
+
+
+
+
 ### Available attributes
 
 ```imageshopField``` is the name of the field in these examples.

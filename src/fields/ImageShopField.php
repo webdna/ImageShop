@@ -21,6 +21,7 @@ use craft\base\Field;
 use craft\helpers\Db;
 use yii\db\Schema;
 use craft\helpers\Json;
+use GraphQL\Type\Definition\Type;
 
 /**
  * @author    WebDNA

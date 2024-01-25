@@ -197,6 +197,11 @@ class ImageShop extends Model implements Serializable
         return $this->_json["text"][$lang][$key];
     }
     
+    public function getData(): ?string
+    {
+        return Json::encode($this->_json);
+    }
+    
     /**
      * Returns the object’s serialized value.
      *

@@ -44,6 +44,11 @@ class ImageShopType
                 'type' => Type::string(),
                 'description' => 'The description of the image.',
             ],
+            'data' => [
+                'name' => 'data',
+                'type' => Type::string(),
+                'description' => 'The raw json.',
+            ],
         ];
     }
 }

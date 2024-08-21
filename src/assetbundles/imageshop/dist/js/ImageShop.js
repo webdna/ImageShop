@@ -30,11 +30,13 @@
                  this.$trigger = this.$container.find(".imageshop-trigger");
                  this.$hiddenInput = this.$container.find(".imageshop-value");
                  this.$previewInput = this.$container.find(".imageshop-preview");
-                 this.$removeButton = this.$container.find(".imageshop-remove");
+                 let self = this;
+
+                 this.$previewInput.find(".imageshop-remove").each(function( index ) {
+                    self.addListener(this, 'click', 'removeSelection');
+                  });
  
-                 this.addListener(this.$trigger, "click", "showPopup");
-                 this.addListener(this.$removeButton, "click", "removeSelection");
- 
+                 this.addListener(this.$trigger, "click", "showPopup"); 
  
                  window.addEventListener("message", function (event) {
                      if (event.origin == 'https://client.imageshop.no') {
@@ -48,16 +50,29 @@
                  }.bind(this), false);
              },
  
-             removeSelection: function () {
-                 this.$hiddenInput.val(null);
-                 $("img", this.$previewInput).remove();
-                 $(".imageshop-label", this.$previewInput).remove();
+             removeSelection: function (event) {
+                let code = event.currentTarget.dataset.imgCode;
+                let input = this.$hiddenInput.val();
+                this.$hiddenInput.val(null);
+
+                try {
+                    let json = JSON.parse(input);
+                    if (Array.isArray(json)) {
+                        let filtered = json.filter((image) => ('code' in image) && (image.code != code));
+                        this.$hiddenInput.val(JSON.stringify(filtered));
+                    }
+                    
+                } catch (error) {
+                    
+                }
+                $(event.currentTarget).parents().eq(1).remove();                
+                
              },
  
              removePreview: function () {
-                 $("img", this.$previewInput).remove();
-                 $(".imageshop-label", this.$previewInput).remove();
+                this.$previewInput.empty();
              },
+
  
              showPopup: function (ev) {
                  ev.preventDefault();
@@ -74,25 +89,35 @@
              },
  
              updatePreview: function (data) {
-                 var json = JSON.parse(data);
-                 var url = json.image.file;
-                 var label = json.text.no.title || json.code;
- 
-                 this.removePreview();
- 
-                 this.$previewInput.prepend($('<img>', {
-                     width: 100,
-                     src: url
-                 }));
- 
-                 var labelDiv = $("<div class='imageshop-label'>");
-                 var inner1 = $("<div class='label'><span class='title'>" + label + "</span></div>");
-                 var inner2 = $("<a class='delete icon imageshop-remove' title='Remove'></a>");
-                 this.addListener(inner2, "click", "removeSelection");
- 
-                 labelDiv.append(inner1);
-                 labelDiv.append(inner2);
-                 this.$previewInput.append(labelDiv);
+                var json = JSON.parse(data);
+                //  have we returned multiple?
+                this.removePreview();
+                if (!Array.isArray(json)) {
+                    json = [json];
+                }
+
+                json.forEach( image => {
+                    var url = image.image.file;
+                    var label = image.text.no.title || image.code;
+                    var imageInstance = $('<div>', {
+                        class: 'imageshop-img-container',
+                    }).appendTo(this.$previewInput);
+                    
+                    imageInstance.append($('<img>', {
+                        width: 100,
+                        src: url
+                    }));
+
+                    var labelDiv = $("<div class='imageshop-label'>");
+                    var inner1 = $("<div class='label'><span class='title'>" + label + "</span></div>");
+                    var inner2 = $("<a class='delete icon imageshop-remove' title='Remove' data-img-code='" + image.code + "'></a>");
+                    this.addListener(inner2, "click", 'removeSelection');
+
+                    labelDiv.append(inner1);
+                    labelDiv.append(inner2);
+                    imageInstance.append(labelDiv);
+                });
+                
              }
          });
  

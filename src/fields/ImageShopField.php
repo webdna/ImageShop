@@ -41,6 +41,8 @@ class ImageShopField extends Field
 
     public bool $showCredits = false;
 
+    public bool $allowMultiple = false;
+
     public string $sizes = 'Normal;1920x0';
 
 
@@ -67,13 +69,26 @@ class ImageShopField extends Field
     /**
      * @inheritdoc
      */
-    public function normalizeValue($value, ElementInterface $element = null): Model
+    public function normalizeValue($value, ElementInterface $element = null): array
     {
+        
         if ($value instanceof Model) {
-            return $value;
+            return [$value];
+        }
+        // its already an array of models
+        if (is_array($value) && array_is_list($value)) {
+            return array_filter($value, fn($image) => $image instanceof Model);
         }
 
-        return new Model($value);
+        if (is_string($value) && Json::isJsonObject($value)) {
+            $json = Json::decode($value);
+            if (array_is_list($json)) {
+                return array_map(fn($image) => new Model($image), array_filter($json, fn($image) => !empty($image)));            
+            }
+        }
+
+        return [new Model($value)];
+
     }
 
     /**
@@ -81,6 +96,10 @@ class ImageShopField extends Field
      */
     public function serializeValue($value, ElementInterface $element = null): mixed
     {
+        if (is_array($value)) {
+            return array_map(fn($image) => $image->serialize(), $value);
+        }
+
         return parent::serializeValue($value, $element);
     }
 
@@ -117,6 +136,7 @@ class ImageShopField extends Field
             "FORMAT" => "json",
             "SETDOMAIN" => "false",
             "CULTURE" => $settings->language,
+            "ENABLEMULTISELECT" => $this->allowMultiple ? 'true' : 'false'
         ]);
 
         $url = sprintf("%s?%s", "https://client.imageshop.no/insertimage2.aspx", trim($query, "&"));

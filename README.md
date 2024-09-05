@@ -48,6 +48,13 @@ php craft plugin/install imageshop-dam
 <img src="{{ entry.imageshopField.url }}" alt="{{ entry.imageshopField.filename }}">
 ```
 
+### Multiple images
+```twig
+{% for image in entry.imageshopField %}
+    <img src="{{ image.url }}" alt="{{ image.filename }}">
+{% endfor %}
+```
+
 ### Using Imager
 
 ## Single size

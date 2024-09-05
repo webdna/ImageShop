@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 2.0.6 - 2024-09-05
+### Added
+- Multi image support
+
 ## 2.0.5 - 2024-01-25
 ### Added
 - Data to GraphQL

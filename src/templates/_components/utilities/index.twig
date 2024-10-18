@@ -1,0 +1,11 @@
+<form class="utility" method="post" accept-charset="UTF-8" style="margin-top: 2rem;">
+
+    {{ actionInput('imageshop-dam/default/create-sync-jobs') }}
+    {{ csrfInput() }}
+    {{ redirectInput('utilities/imageshop-dam') }}
+
+    <div class="buttons">
+        <button type="submit" class="btn submit">{{ 'Sync images'|t('imageshop-dam') }}</button>
+        <div class="utility-status"></div>
+    </div>
+</form>

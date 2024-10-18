@@ -22,11 +22,13 @@
              $url: null,
              $popupWindow: null,
              $open: false,
+             $name: null,
  
              init: function (options) {
                  
                  this.$container = $('[data-id="' + options.namespace + 'imageshop"]');
                  this.$url = options.url;
+                 this.$name = options.name,
                  this.$trigger = this.$container.find(".imageshop-trigger");
                  this.$hiddenInput = this.$container.find(".imageshop-value");
                  this.$previewInput = this.$container.find(".imageshop-preview");
@@ -90,6 +92,7 @@
  
              updatePreview: function (data) {
                 var json = JSON.parse(data);
+                console.log('json data',data);
                 //  have we returned multiple?
                 this.removePreview();
                 if (!Array.isArray(json)) {

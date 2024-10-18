@@ -14,6 +14,15 @@ use webdna\imageshop\ImageShop as Plugin;
 
 use Craft;
 use craft\base\Component;
+use craft\db\Query;
+use craft\db\Table;
+use craft\helpers\App;
+use craft\helpers\Db;
+use craft\helpers\Json;
+use DateTime;
+use GuzzleHttp\Client;
+use webdna\imageshop\fields\ImageShopField;
+use webdna\imageshop\jobs\Sync;
 
 /**
  * @author    WebDNA
@@ -33,69 +42,188 @@ class ImageShop extends Component
         if (empty($settings->token) || empty($settings->key)) {
             return null;
         }
-        
-        $action = 'http://imageshop.no/V4/GetTemporaryToken';
-        
-        $xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
-        $xml .= "<soap:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\n";
-        $xml .= "  <soap:Body>\n";
-        $xml .= "    <GetTemporaryToken xmlns=\"http://imageshop.no/V4\">\n";
-        $xml .= "      <token>" . Craft::parseEnv($settings->token) . "</token>\n";
-        $xml .= "      <privateKey>" . Craft::parseEnv($settings->key) . "</privateKey>\n";
-        $xml .= "    </GetTemporaryToken>\n";
-        $xml .= "  </soap:Body>\n";
-        $xml .= "</soap:Envelope>";
-        
-        return $this->_request($action, $xml);
+        return $this->_request('GET','/Login/GetTemporaryToken',[
+            'query' => [
+                'privateKey' => App::parseEnv($settings->key)
+            ]
+        ]);
     }
-    
-    private function _request($action, $xml, $cacheDuration = 86400): mixed
+
+    public function getDocumentById(int $documentId, string $language): ?array
     {
-        $url = 'https://webservices.imageshop.no/V4.asmx';
-    
-        $headers = [
-            'POST /V4.asmx HTTP/1.1',
-            'Host: webservices.imageshop.no',
-            'Content-Type: text/xml; charset=utf-8',
-            'Content-Length: ' . strlen($xml),
-            'SOAPAction: ' . $action
-        ];
-    
-        $cacheKey = md5($url . implode(', ', $headers) . $xml);
-    
-    
-        if (($cached = Craft::$app->getCache()->get($cacheKey)) !== false) {
-            return $cached;
+        if (!$documentId || !$language) {
+            return null;
         }
-    
-        try {
-            $curl = curl_init();
-            curl_setopt($curl, CURLOPT_URL, $url);
-            curl_setopt($curl, CURLOPT_POST, true);
-            curl_setopt($curl, CURLOPT_POSTFIELDS, $xml);
-            curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-    
-            $response = curl_exec($curl);
-            curl_close($curl);
-    
-            $response1 = str_replace("<soap:Body>", "", $response);
-            $response2 = str_replace("</soap:Body>", "", $response1);
-    
-            $result = json_decode(json_encode(simplexml_load_string($response2)));
+        
+        $response = $this->_request('GET','/Document/GetDocumentById',[
+            'query' => [
+                'DocumentID' => $documentId,
+                'language' => $language
+            ]
+        ]);
 
-        } catch (\Throwable $e) {
-            Craft::warning("Couldn't get SOAP response: {$e->getMessage()}", __METHOD__);
-    
-            $result = null;
-    
-            // Set shorter cache duraction
-            $cacheDuration = 300; // 5 minutes
+        if (!Json::isJsonObject($response)) {
+            return null;
         }
-    
-        Craft::$app->getCache()->set($cacheKey, $result, $cacheDuration);
-    
-        return $result;
+
+        return Json::decode($response);
     }
 
+    public function getImageShopFields(): array
+    {
+        $imageShopFields = Craft::$app->getFields()->getFieldsByType(ImageShopField::class);
+        $fields = [];
+        foreach ($imageShopFields as $field) {
+            $columnName = '';
+            if ($field->columnPrefix) {
+                $columnName .= $field->columnPrefix . '_';
+            }
+            $columnName .= 'field_' . $field->handle;
+            if ($field->columnSuffix) {
+                $columnName .= '_' . $field->columnSuffix;
+            }
+            $fields[] = $columnName;
+        }
+
+        return $fields;
+    }
+
+    public function getAllImageShopImages(): array
+    {
+        $fields = $this->getImageShopFields();
+
+        $imagesQuery = (new Query())
+            ->select('*')
+            ->from(Table::CONTENT);
+
+            
+            foreach ($fields as $field) {
+                $imagesQuery->andWhere(['not', [$field => null]]);
+            }
+        // would be better to do this with something like JSON_CONTAINS but 
+        // can't be certain about db driver or version on system.
+
+
+        $images = [];
+        foreach ($imagesQuery->all() as $value) {
+            $image = [
+                'rowId' => $value['id'],
+                'rowUid' => $value['uid'],
+                'documentIds' => [],
+                'fields' => []
+            ];
+            foreach ($fields as $field) {
+                if (array_key_exists($field,$value) && Json::isJsonObject($value[$field])) {
+                    $fieldValue = Json::decode($value[$field]);
+                    // deal with pre-allow multiple update
+                    if (!is_array($fieldValue)) {
+                       $fieldValue = [$fieldValue];
+                    }
+                    // Craft::dd($fieldValue);
+                    foreach ($fieldValue as $value) {
+                        $imageData = Json::decode($value);
+                        $image['documentIds'][] = $imageData['documentId'];
+                        $image['fields'][$field][($imageData['documentId'])] = $imageData;
+                    }
+                }
+            }
+            $images[] = $image;
+        }
+        return $images;
+
+    }
+
+    public function getNewImageData($dbRows, $recentlyUpdatedIds): bool
+    {
+        $settings = Plugin::$plugin->getSettings();
+        $documentCache = [];
+        $documentIds = $this->getDocumentIdsFromImages($dbRows);
+        $forUpdate = array_intersect($documentIds, $recentlyUpdatedIds);
+
+        foreach ($forUpdate as $documentId) {
+            $documentCache[$documentId] = $this->getDocumentById($documentId,$settings->language);
+        }
+
+        $this->_setDocumentCache($documentCache);
+      
+        return true;
+    }
+
+    public function getDocumentIdsFromImages(array $images): array
+    {
+        return array_unique(array_merge(...array_column($images,'documentIds')));
+    }
+
+    
+    public function getRecentlyUpdated(): array
+    {
+        $lastUpdate = $this->_getDateLastUpdated();
+        $response = $this->_request('GET','/Document/GetAllDocumentIdsChangedAfter',[
+            'query' => [
+                'changed' => $lastUpdate
+                ]
+            ]);
+        $ids = Json::decodeIfJson($response);
+        
+        return $ids;
+    }
+    
+    public function createSyncJob(int $id, int $index, int $total): void
+    {
+        Craft::$app->getQueue()->ttr(3600)->push(new Sync([
+            'id' => $id,
+            'index' => $index,
+            'total' => $total
+        ]));
+    }
+        
+    public function _setDocumentCache($documentCache): bool
+    {
+        $lastUpdate = Db::prepareDateForDb(date('m/d/Y h:i:s a', time()));
+        Craft::$app->getDb()
+            ->createCommand()
+            ->update('{{%imageshop-dam_sync}}', [
+                'lastUpdated' => $lastUpdate,
+                'documentCache' => Json::encode($documentCache)
+            ])
+            ->execute();
+
+        return true;
+    }
+
+    private function _getDateLastUpdated(): string
+    {
+        $query = (new Query())
+            ->select('lastUpdated')
+            ->from('{{%imageshop-dam_sync}}')
+            ->one();
+
+        return $query['lastUpdated'];
+    }
+
+    private function _request(string $method='GET', string $action='', array $params=[]): mixed
+    {
+        $settings = Plugin::$plugin->getSettings();
+        // If no token is sent or set in settings
+        if (empty($settings->token) || empty($settings->key)) {
+            return null;
+        }
+
+        $client = new Client([
+            'base_uri' => 'https://api.imageshop.no',
+            'headers' => [
+                'Token' => App::parseEnv($settings->token),
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/xml'
+            ]
+        ]);
+        
+        $response = $client->request($method,$action,$params);
+        
+        if ($response->getStatusCode() == '200' && $response->hasHeader('Content-Length')) {
+            return $response->getBody()->getContents();
+        }
+
+        return null;
+    }
 }

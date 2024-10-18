@@ -10,18 +10,18 @@
 
 namespace webdna\imageshop;
 
-use webdna\imageshop\services\ImageShop as Service;
-use webdna\imageshop\models\Settings;
-use webdna\imageshop\fields\ImageShopField;
-
 use Craft;
-use craft\base\Plugin;
 use craft\base\Model;
-use craft\services\Plugins;
+use craft\base\Plugin;
 use craft\events\PluginEvent;
-use craft\services\Fields;
 use craft\events\RegisterComponentTypesEvent;
-
+use craft\services\Fields;
+use craft\services\Plugins;
+use craft\services\Utilities;
+use webdna\imageshop\fields\ImageShopField;
+use webdna\imageshop\models\Settings;
+use webdna\imageshop\services\ImageShop as Service;
+use webdna\imageshop\utilities\ImageShop as UtilitiesImageShop;
 use yii\base\Event;
 
 /**
@@ -86,6 +86,9 @@ class ImageShop extends Plugin
             ),
             __METHOD__
         );
+        Event::on(Utilities::class, Utilities::EVENT_REGISTER_UTILITY_TYPES, function (RegisterComponentTypesEvent $event) {
+            $event->types[] = UtilitiesImageShop::class;
+        });
     }
 
     // Protected Methods

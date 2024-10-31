@@ -18,6 +18,7 @@ use webdna\imageshop\gql\types\ImageShopType;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\Field;
+use craft\helpers\App;
 use craft\helpers\Db;
 use yii\db\Schema;
 use yii\base\Arrayable;
@@ -129,7 +130,7 @@ class ImageShopField extends Field
         $token = ImageShop::$plugin->service->getTemporaryToken();
 
         $query = http_build_query([
-            "IMAGESHOPTOKEN" => (string) $token,
+            "IMAGESHOPTOKEN" => App::parseEnv($settings->token),
             "SHOWSIZEDIALOGUE" => $this->showSizeDialogue ? 'true' : 'false',
             "SHOWCROPDIALOGUE" => $this->showCropDialogue ? 'true' : 'false',
             "IMAGESHOPSIZES" => $this->sizes,

@@ -4,6 +4,7 @@ namespace webdna\imageshop\utilities;
 
 use Craft;
 use craft\base\Utility;
+use webdna\imageshop\ImageShop as Plugin;
 
 /**
  * Sync utility
@@ -27,9 +28,14 @@ class ImageShop extends Utility
 
     static function contentHtml(): string
     {
-        // todo: replace with custom content HTML
         $view = Craft::$app->getView();
-        return $view->renderTemplate('imageshop-dam/_components/utilities/index.twig');
+        $documentCacheExists = !empty(Plugin::getInstance()->service->getDocumentCache());
+        return $view->renderTemplate(
+            'imageshop-dam/_components/utilities/index.twig',
+            [
+                'canRunDbUpdate' => $documentCacheExists
+            ]
+        );
     }
 }
 

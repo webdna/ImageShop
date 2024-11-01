@@ -44,8 +44,10 @@ php craft plugin/install imageshop-dam
 
 ### Plain and simple
 
+Note: Just like templating an assets field, the field will always return an array.
+
 ```twig
-<img src="{{ entry.imageshopField.url }}" alt="{{ entry.imageshopField.filename }}">
+<img src="{{ entry.imageshopField|first.url }}" alt="{{ entry.imageshopField|first.filename }}">
 ```
 
 ### Multiple images

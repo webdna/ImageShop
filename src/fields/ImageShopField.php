@@ -177,7 +177,7 @@ class ImageShopField extends Field
      */
     public function getContentGqlType(): Type|array
     {
-        return ImageShopType::getType();
+        return Type::listOf(ImageShopType::getType());
     }
 
 }

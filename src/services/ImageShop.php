@@ -229,6 +229,18 @@ class ImageShop extends Component
         return $mapped;
     }
 
+    /**
+     * Updates the recently updated dump in the db
+     *
+     * @return void
+     **/
+    public function updateRecentlyUpdatedCache(): void
+    {
+        $recentlyUpdatedIds = $this->_getRecentlyUpdated();
+        $imageShopDbRows = $this->getAllImageShopContentRows();
+        $this->_getNewImageData($imageShopDbRows, $recentlyUpdatedIds);
+    }
+
 
     /**
      * Creates the recently updated document cache using the getDocumentById API call

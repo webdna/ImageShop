@@ -374,6 +374,10 @@ class ImageShop extends Component
             ->from('{{%imageshop-dam_sync}}')
             ->one();
 
+        if (empty($query)) {
+            return [];
+        }
+
         return Json::decodeIfJson($query['documentCache']);
     }
         

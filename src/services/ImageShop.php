@@ -128,7 +128,6 @@ class ImageShop extends Component
         // would be better to do this with something like JSON_CONTAINS but 
         // can't be certain about db driver or version on system.
 
-
         $rows = [];
         foreach ($rowsQuery->all() as $value) {
             $row = [
@@ -137,14 +136,17 @@ class ImageShop extends Component
                 'documentIds' => [],
                 'fields' => []
             ];
+            
             foreach ($fields as $field) {
                 if (array_key_exists($field,$value) && Json::isJsonObject($value[$field])) {
                     $fieldValue = Json::decode($value[$field]);
+                    //Craft::dd($fieldValue);
                     // deal with pre-allow multiple update
-                    if (!is_array($fieldValue)) {
+                    if (array_key_exists('documentId', $fieldValue)) {
                        $fieldValue = [$fieldValue];
                     }
-                    // Craft::dd($fieldValue);
+                    
+                    //Craft::dd($fieldValue);
                     foreach ($fieldValue as $v) {
                         $imageData = is_array($v) ? $v : Json::decodeIfJson($v);
                         $row['documentIds'][] = $imageData['documentId'];
@@ -182,15 +184,22 @@ class ImageShop extends Component
         foreach ($fieldColumnNames as $columnName) {
             $oldData = Json::decodeIfJson($rowsQuery[$columnName]);
             $newData[$columnName] = [];
-            foreach ($oldData as $documentJson) {
-                $document = Json::decodeIfJson($documentJson);
-                if (array_key_exists($document['documentId'], $updatedDocuments)) {
-                    $newData[$columnName][] = $this->mapDocumentFields($document,$updatedDocuments[$document['documentId']]); 
-                } else {
-                    $newData[$columnName][] = $document;
+            if (is_array($oldData)) {
+                if (array_key_exists('documentId', $oldData)) {
+                    $oldData = [$oldData];
                 }
+                foreach ($oldData as $documentJson) {
+                    $document = Json::decodeIfJson($documentJson);
+                    if (array_key_exists($document['documentId'], $updatedDocuments)) {
+                        $newData[$columnName][] = $this->mapDocumentFields($document,$updatedDocuments[$document['documentId']]); 
+                    } else {
+                        $newData[$columnName][] = $document;
+                    }
+                }
+                $newData[$columnName] = Json::encode($newData[$columnName]);
+            } else {
+                $newData[$columnName] = Json::encode($oldData);
             }
-            $newData[$columnName] = Json::encode($newData[$columnName]);
         }
 
         Craft::$app->getDb()
@@ -237,7 +246,9 @@ class ImageShop extends Component
     public function updateRecentlyUpdatedCache(): void
     {
         $recentlyUpdatedIds = $this->_getRecentlyUpdated();
+        //Craft::dd($recentlyUpdatedIds);
         $imageShopDbRows = $this->getAllImageShopContentRows();
+        //Craft::dd($imageShopDbRows);
         $this->_getNewImageData($imageShopDbRows, $recentlyUpdatedIds);
     }
 
@@ -254,6 +265,7 @@ class ImageShop extends Component
         $documentCache = [];
         $documentIds = $this->_getDocumentIdsFromImages($dbRows);
         $forUpdate = array_intersect($documentIds, $recentlyUpdatedIds);
+        //Craft::dd($forUpdate);
 
         if (count($forUpdate) === 0) {
             return;
@@ -261,6 +273,7 @@ class ImageShop extends Component
 
         foreach ($forUpdate as $documentId) {
             $documentCache[$documentId] = $this->getDocumentById($documentId,$settings->language);
+            //Craft::dd($documentCache[$documentId]);
         }
 
 
@@ -317,6 +330,14 @@ class ImageShop extends Component
         $total = count($contentRows);
 
         foreach ($contentRows as $row) {
+            
+            /*$this->updateContentRow([
+                'rowId' => $row['rowId'],
+                'rowUid' => $row['rowUid'],
+                'documentIds' => $row['documentIds'],
+                'fields' => $row['fields'],
+            ]);*/
+            
             Craft::$app->getQueue()->ttr(3600)->push(new Sync([
                 'rowId' => $row['rowId'],
                 'rowUid' => $row['rowUid'],
@@ -389,10 +410,10 @@ class ImageShop extends Component
      **/
     private function _setDocumentCache(array $documentCache): bool
     {
-        $lastUpdate = Db::prepareDateForDb(date('m/d/Y h:i:s a', time()));
+        $lastUpdate = Db::prepareDateForDb(new \DateTime());
         Craft::$app->getDb()
             ->createCommand()
-            ->update('{{%imageshop-dam_sync}}', [
+            ->upsert('{{%imageshop-dam_sync}}', [
                 'lastUpdated' => $lastUpdate,
                 'documentCache' => Json::encode($documentCache)
             ])
@@ -413,7 +434,7 @@ class ImageShop extends Component
             ->from('{{%imageshop-dam_sync}}')
             ->one();
 
-        return $query['lastUpdated'];
+        return $query['lastUpdated'] ?? (new \DateTime('2000-01-01'))->format('m/d/Y h:i:s');
     }
 
     /**

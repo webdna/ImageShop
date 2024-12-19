@@ -126,28 +126,7 @@ class ImageShop extends Model implements Serializable
     
     protected function getLang($lang = null): ?string
     {
-        if (!$lang) {
-            $settings = Plugin::$plugin->getSettings();
-            switch ($settings->language) {
-                case 'nb-NO':
-                    $lang = 'no';
-                    break;
-                    
-                case 'en-US':
-                    $lang = 'en';
-                    break;
-                    
-                default:
-                    $lang = 'no';
-                    break;
-            }
-        } else {
-            if (!in_array($lang, ["no", "en", "sv"])) {
-                $lang = "no";
-            }
-        }
-        
-        return $lang;
+        return Plugin::getInstance()->service->sanitizeLanguage($lang);
     }
     
     public function getTags($lang = null): ?string
@@ -179,7 +158,12 @@ class ImageShop extends Model implements Serializable
     
     public function getCredits($lang = null): ?string
     {
-        return $this->getTextInfo("credits", $lang);;
+        return $this->getTextInfo("credits", $lang);
+    }
+
+    public function getAltText($lang = null): ?string
+    {
+        return $this->getTextInfo("altText", $lang);
     }
     
     protected function getTextInfo($key, $lang = null): ?string

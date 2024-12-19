@@ -18,8 +18,10 @@ use webdna\imageshop\gql\types\ImageShopType;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\Field;
+use craft\helpers\App;
 use craft\helpers\Db;
 use yii\db\Schema;
+use yii\base\Arrayable;
 use craft\helpers\Json;
 use GraphQL\Type\Definition\Type;
 
@@ -69,7 +71,7 @@ class ImageShopField extends Field
     /**
      * @inheritdoc
      */
-    public function normalizeValue($value, ElementInterface $element = null): array
+    public function normalizeValue($value, ElementInterface $element = null): Model|array|null
     {
         
         if ($value instanceof Model) {
@@ -83,7 +85,8 @@ class ImageShopField extends Field
         if (is_string($value) && Json::isJsonObject($value)) {
             $json = Json::decode($value);
             if (array_is_list($json)) {
-                return array_map(fn($image) => new Model($image), array_filter($json, fn($image) => !empty($image)));            
+                $filtered = array_map(fn($image) => new Model($image), array_filter($json, fn($image) => !empty($image)));            
+                return $filtered;
             }
         }
 
@@ -96,6 +99,7 @@ class ImageShopField extends Field
      */
     public function serializeValue($value, ElementInterface $element = null): mixed
     {
+        // If it's "arrayable", convert to array
         if (is_array($value)) {
             return array_map(fn($image) => $image->serialize(), $value);
         }
@@ -124,10 +128,9 @@ class ImageShopField extends Field
     {
         $settings = ImageShop::$plugin->getSettings();
         $token = ImageShop::$plugin->service->getTemporaryToken();
-        $token = $token->GetTemporaryTokenResponse->GetTemporaryTokenResult;
 
         $query = http_build_query([
-            "IMAGESHOPTOKEN" => (string) $token,
+            "IMAGESHOPTOKEN" => App::parseEnv($settings->token),
             "SHOWSIZEDIALOGUE" => $this->showSizeDialogue ? 'true' : 'false',
             "SHOWCROPDIALOGUE" => $this->showCropDialogue ? 'true' : 'false',
             "IMAGESHOPSIZES" => $this->sizes,

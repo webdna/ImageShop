@@ -1,0 +1,33 @@
+<h2 class="first">{{ 'Fetch latest document changes from ImageShop'|t('imageshop-dam') }}</h2>
+<form class="utility" method="post" accept-charset="UTF-8" style="margin-top: 2rem;">
+
+    {{ actionInput('imageshop-dam/default/get-changed-documents') }}
+    {{ csrfInput() }}
+    {{ redirectInput('utilities/imageshop-dam') }}
+
+    <div class="buttons">
+        <button type="submit" class="btn submit">{{ 'Fetch updated documents'|t('imageshop-dam') }}</button>
+        <div class="utility-status"></div>
+    </div>
+</form>
+
+<hr/>
+
+<h2>{{ 'Update ImageShop images in database'|t('imageshop-dam') }}</h2>
+
+{% if not canRunDbUpdate %}
+    <p>{{ 'Please fetch the updated documents from imageshop servers before updating images in the database'|t('imageshop-dam') }}</p>
+{% else %}
+
+<form class="utility" method="post" accept-charset="UTF-8" style="margin-top: 2rem;">
+
+    {{ actionInput('imageshop-dam/default/create-sync-jobs') }}
+    {{ csrfInput() }}
+    {{ redirectInput('utilities/imageshop-dam') }}
+    
+    <div class="buttons">
+        <button type="submit" class="btn submit">{{ 'Sync images'|t('imageshop-dam') }}</button>
+        <div class="utility-status"></div>
+    </div>
+</form>
+{% endif %}

@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 2.1.0 - 2024-12-19
+### Added
+- Sync utility to update existing fields.
+
 ## 2.0.7 - 2024-11-01
 ### Fixed
 - GraphQL now returns an array of imageShop images.
